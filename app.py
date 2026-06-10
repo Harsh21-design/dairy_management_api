@@ -1,14 +1,17 @@
 import os
 from flask import Flask
 from extensions import db
+from dotenv import load_dotenv
 from routes.customer_routes import customers
+from models.customers import Customer
+from config import Config
 
+
+load_dotenv()   
 app = Flask(__name__)
 
 # Database Configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
-
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config.from_object(Config)
 
 # Initialize Database
 db.init_app(app)

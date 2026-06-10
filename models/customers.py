@@ -28,11 +28,11 @@ class Customer(db.Model):
 
     created_at = db.Column(
         db.DateTime,
-        default=datetime.datetime.utcnow
+        default=datetime.utcnow
     )
 
     updated_at = db.Column(
         db.DateTime,
-        default=datetime.datetime.utcnow,
-        onupdate=datetime.datetime.utcnow
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow
     )

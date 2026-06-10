@@ -1,0 +1,30 @@
+import os
+from flask import Flask
+from extensions import db
+from routes.customer_routes import customers
+
+app = Flask(__name__)
+
+# Database Configuration
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
+
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+# Initialize Database
+db.init_app(app)
+
+# Register Blueprint
+app.register_blueprint(customers)
+
+@app.route("/")
+def home():
+    return {
+        "message": "Welcome to Dairy Management API"
+    }
+
+if __name__ == "__main__":
+
+    with app.app_context():
+        db.create_all()
+
+    app.run(debug=True)

@@ -36,3 +36,12 @@ class Customer(db.Model):
         default=datetime.utcnow,
         onupdate=datetime.utcnow
     )
+
+def to_dict(self):
+    return {
+        "id": self.id,
+        "name": self.name,
+        "mobile": self.mobile,
+        "address": self.address,
+        "opening_balance": self.opening_balance
+    }

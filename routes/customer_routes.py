@@ -37,6 +37,11 @@ def get_customers():
     for customer in customers:
         result.append(customer.to_dict())
 
+    if not result:
+        return jsonify({
+            "message": "No customers found"
+        }), 404
+
     return jsonify(result)
 
 

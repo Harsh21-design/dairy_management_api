@@ -3,6 +3,7 @@ from flask import Flask
 from extensions import db
 from dotenv import load_dotenv
 from routes.customer_routes import customers
+from routes.products_routes import products
 
 load_dotenv()   
 app = Flask(__name__)
@@ -14,6 +15,7 @@ db.init_app(app)
 
 # Register Blueprint
 app.register_blueprint(customers)
+app.register_blueprint(products)
 
 @app.route("/")
 def home():

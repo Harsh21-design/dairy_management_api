@@ -30,7 +30,8 @@ def create_customer():
 @customers.route("/customers", methods=["GET"])
 def get_customers():
 
-    customers = Customer.query.all()
+    # customers = Customer.query.all()
+    customers = Customer.query.filter_by(is_deleted=False).all()
 
     result = []
 
@@ -42,14 +43,16 @@ def get_customers():
             "message": "No customers found"
         }), 404
 
-    return jsonify(result)
+    return jsonify({
+        "customers": result
+    })
 
 
 # Get Single Customer
 @customers.route("/customers/<int:id>", methods=["GET"])
 def get_customer(id):
 
-    customer = Customer.query.get(id)
+    customer = Customer.query.filter_by(is_deleted=False).get(id)
 
     if not customer:
         return jsonify({
@@ -63,7 +66,7 @@ def get_customer(id):
 @customers.route("/customers/<int:id>", methods=["PUT"])
 def update_customer(id):
 
-    customer = Customer.query.get(id)
+    customer = Customer.query.filter_by(is_deleted=False).get(id)
 
     if not customer:
         return jsonify({
@@ -80,7 +83,8 @@ def update_customer(id):
     db.session.commit()
 
     return jsonify({
-        "message": "Customer updated successfully"
+        "message": "Customer updated successfully",
+        "customer_id": customer.id
     })
 
 
@@ -95,9 +99,15 @@ def delete_customer(id):
             "message": "Customer not found"
         }), 404
 
-    db.session.delete(customer)
+    # permanent deletion
+    # db.session.delete(customer)
+
+    # soft deletion
+    customer.is_deleted = True
+
     db.session.commit()
 
     return jsonify({
-        "message": "Customer deleted successfully"
+        "message": "Customer deleted successfully",
+        "customer_id": customer.id
     })

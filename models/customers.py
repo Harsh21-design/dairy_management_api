@@ -22,8 +22,13 @@ class Customer(db.Model):
     )
 
     opening_balance = db.Column(
-        db.Float,
-        default=0
+        db.Numeric(10, 2),
+        default=0.00
+    )
+
+    is_deleted = db.Column(
+        db.Boolean,
+        default=False
     )
 
     created_at = db.Column(
@@ -37,11 +42,14 @@ class Customer(db.Model):
         onupdate=datetime.utcnow
     )
 
-def to_dict(self):
-    return {
-        "id": self.id,
-        "name": self.name,
-        "mobile": self.mobile,
-        "address": self.address,
-        "opening_balance": self.opening_balance
-    }
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "mobile": self.mobile,
+            "address": self.address,
+            "opening_balance": self.opening_balance,
+            "is_deleted": self.is_deleted,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+        }

@@ -52,7 +52,7 @@ def get_customers():
 @customers.route("/customers/<int:id>", methods=["GET"])
 def get_customer(id):
 
-    customer = Customer.query.filter_by(is_deleted=False).get(id)
+    customer = Customer.query.filter_by(id=id,is_deleted=False).first()
 
     if not customer:
         return jsonify({
@@ -66,7 +66,7 @@ def get_customer(id):
 @customers.route("/customers/<int:id>", methods=["PUT"])
 def update_customer(id):
 
-    customer = Customer.query.filter_by(is_deleted=False).get(id)
+    customer = Customer.query.filter_by(id=id,is_deleted=False).first()
 
     if not customer:
         return jsonify({
@@ -92,7 +92,7 @@ def update_customer(id):
 @customers.route("/customers/<int:id>", methods=["DELETE"])
 def delete_customer(id):
 
-    customer = Customer.query.get(id)
+    customer = Customer.query.filter_by(id=id,is_deleted=False).first()
 
     if not customer:
         return jsonify({

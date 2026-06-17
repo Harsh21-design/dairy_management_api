@@ -1,5 +1,9 @@
 from extensions import db
 from datetime import datetime
+from datetime import datetime, timedelta
+
+def indian_time():
+    return datetime.utcnow() + timedelta(hours=5, minutes=30)
 
 class MilkEntry(db.Model):
 
@@ -56,13 +60,14 @@ class MilkEntry(db.Model):
 
     created_at = db.Column(
         db.DateTime,
-        default=datetime.utcnow
+        default=indian_time
+
     )
 
     updated_at = db.Column(
         db.DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow
+        default=indian_time,
+        onupdate=indian_time
     )
 
     def to_dict(self):
@@ -83,7 +88,7 @@ class MilkEntry(db.Model):
 
             "is_deleted": self.is_deleted,
 
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+            "created_at": self.created_at.strftime("%Y-%m-%d %I:%M:%S %p"),
+            "updated_at": self.updated_at.strftime("%Y-%m-%d %I:%M:%S %p")
         }
     

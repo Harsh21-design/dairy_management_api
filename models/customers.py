@@ -1,5 +1,8 @@
 from extensions import db
-from datetime import datetime
+from datetime import datetime, timedelta
+
+def indian_time():
+    return datetime.utcnow() + timedelta(hours=5, minutes=30)
 
 class Customer(db.Model):
 
@@ -33,13 +36,13 @@ class Customer(db.Model):
 
     created_at = db.Column(
         db.DateTime,
-        default=datetime.utcnow
+        default=indian_time
     )
 
     updated_at = db.Column(
         db.DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow
+        default=indian_time,
+        onupdate=indian_time
     )
 
     # add customer name in milk entries 
@@ -55,8 +58,8 @@ class Customer(db.Model):
             "name": self.name,
             "mobile": self.mobile,
             "address": self.address,
-            "opening_balance": self.opening_balance,
+            "opening_balance": float(self.opening_balance),
             "is_deleted": self.is_deleted,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+            "created_at": self.created_at.strftime("%Y-%m-%d %I:%M:%S %p"),
+            "updated_at": self.updated_at.strftime("%Y-%m-%d %I:%M:%S %p")
         }

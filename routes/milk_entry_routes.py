@@ -1,30 +1,65 @@
 from flask import Blueprint, request, jsonify
 from extensions import db
 from models.milk_entry import MilkEntry
+from models.customers import Customer
+from models.products import Product
 
 milk_entries = Blueprint("milk_entries", __name__)
 
 # Create Milk Entry
-@milk_entries.route("/",methods=["POST"])
+@milk_entries.route("/milk-entries",methods=["POST"])
 def create_milk_entry():
 
     data = request.get_json()
+    
+    customer = Customer.query.filter_by(id=data["customer_id"],is_deleted=False).first()
+
+    if not customer:
+        return jsonify({
+            "message":"customer not found"
+        }), 404
+    
+    product = Product.query.filter_by(id=data["product_id"],is_deleted=False).first()
+
+    if not product:
+        return jsonify({
+            "message":"product not found"
+        }), 404
+    
+    morning_qty = float(data.get("morning_qty", 0))
+    evening_qty = float(data.get("evening_qty", 0))
+
+    total_qty = morning_qty + evening_qty
+
+    rate = float(product.rate)
+
+    amount = total_qty * rate
 
     milk_entry = MilkEntry(
-       data[""]
+       customer_id = data["customer_id"],
+       product_id = data["product_id"],
+       entry_date = data["entry_date"],
+
+       morning_qty = data["morning_qty"],
+       evening_qty = data["evening_qty"],
+
+       total_qty = total_qty,
+       rate = rate,
+       amount = amount
+  
     )
 
     db.session.add(milk_entry)
     db.session.commit()
 
     return jsonify({
-        "message": "MilkEntry created successfully",
+        "message": "Milk entry created successfully",
         "milk_entry_id": milk_entry.id
     }), 201
 
 
-# Get All MilkEntries
-@milk_entries.route("/milk_entrys", methods=["GET"])
+# Get All Milk Entries
+@milk_entries.route("/milk-entries", methods=["GET"])
 def get_milk_entrys():
 
     milk_entries = MilkEntry.query.filter_by(is_deleted=False).all()
@@ -44,52 +79,65 @@ def get_milk_entrys():
     })
 
 
-# Get Single MilkEntry
-@milk_entries.route("/milk_entrys/<int:id>", methods=["GET"])
+# Get Single Milk Entry
+@milk_entries.route("/milk-entries/<int:id>", methods=["GET"])
 def get_milk_entry(id):
 
     milk_entry = MilkEntry.query.filter_by(id=id,is_deleted=False).first()
 
     if not milk_entry:
         return jsonify({
-            "message": "MilkEntry not found"
+            "message": "Milk Entry not found"
         }), 404
 
     return jsonify(milk_entry.to_dict())
 
 
-# Update MilkEntry
-@milk_entries.route("/milk_entrys/<int:id>", methods=["PUT"])
+# Update Milk Entry
+@milk_entries.route("/milk-entries/<int:id>", methods=["PUT"])
 def update_milk_entry(id):
 
     milk_entry = MilkEntry.query.filter_by(id=id,is_deleted=False).first()
 
     if not milk_entry:
         return jsonify({
-            "message": "MilkEntry not found"
+            "message": "Milk Entry not found"
         }), 404
     
     data = request.get_json()
-    milk_entry.unit = data["unit"]
-    milk_entry.rate = data["rate"]
+    
+    morning_qty = data.get("morning_qty",0)
+    evening_qty = data.get("evening_qty",0)
+     
+    total_qty = morning_qty + evening_qty
+
+    rate = float(milk_entry.rate)
+
+    amount = total_qty * rate
+
+    # updation
+    milk_entry.morning_qty = morning_qty
+    milk_entry.evening_qty = evening_qty
+    milk_entry.total_qty = total_qty
+    milk_entry.amount = amount
 
     db.session.commit()
 
     return jsonify({
-        "message": "MilkEntry updated successfully",
+        "message": "Milk Entry updated successfully",
         "milk_entry_id": milk_entry.id
     })
 
 
 # Delete MilkEntry
-@milk_entries.route("/milk_entrys/<int:id>", methods=["DELETE"])
+@milk_entries.route("/milk-entries/<int:id>", methods=["DELETE"])
 def delete_milk_entry(id):
 
     milk_entry = MilkEntry.query.filter_by(id=id,is_deleted=False).first()
 
     if not milk_entry:
         return jsonify({
-            "message": "MilkEntry not found"
+            "message": "Milk Entry not found"
         }), 404
 
     # soft deletion
@@ -97,6 +145,6 @@ def delete_milk_entry(id):
     db.session.commit()
 
     return jsonify({
-        "message": "MilkEntry deleted successfully",
+        "message": "Milk Entry deleted successfully",
         "milk_entry_id": milk_entry.id
     })

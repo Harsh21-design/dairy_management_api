@@ -34,12 +34,12 @@ class MilkEntry(db.Model):
         default=0.00
     )
 
-    rate = db.Column(
+    total_qty = db.Column(
         db.Numeric(10,2),
         nullable=False
     )
 
-    total_qty = db.Column(
+    rate = db.Column(
         db.Numeric(10,2),
         nullable=False
     )
@@ -70,13 +70,17 @@ class MilkEntry(db.Model):
             "id": self.id,
             "customer_id":self.customer_id,
             "product_id":self.product_id,
-            "entry_date":self.entry_date,
+
+            "entry_date":self.entry_date.strftime("%y-%m-%d"),
             "morning_qty": float(self.morning_qty),
             "evening_qty": float(self.evening_qty),
+
             "total_qty": float(self.total_qty),
             "rate": float(self.rate),
             "amount": float(self.amount),
+
             "is_deleted": self.is_deleted,
+
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None
         }

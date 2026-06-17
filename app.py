@@ -4,6 +4,7 @@ from extensions import db
 from dotenv import load_dotenv
 from routes.customer_routes import customers
 from routes.products_routes import products
+from routes.milk_entry_routes import milk_entries
 
 load_dotenv()   
 app = Flask(__name__)
@@ -16,6 +17,7 @@ db.init_app(app)
 # Register Blueprint
 app.register_blueprint(customers)
 app.register_blueprint(products)
+app.register_blueprint(milk_entries)
 
 @app.route("/")
 def home():

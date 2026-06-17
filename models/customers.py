@@ -42,6 +42,13 @@ class Customer(db.Model):
         onupdate=datetime.utcnow
     )
 
+    # add customer name in milk entries 
+    milk_entries = db.relationship(
+        "MilkEntry",
+        backref = "customer",
+        lazy = True
+    )
+
     def to_dict(self):
         return {
             "id": self.id,

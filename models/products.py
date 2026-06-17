@@ -26,6 +26,13 @@ class Product(db.Model):
         default=False
     )
 
+    # add product name in milk entries 
+    milk_entries = db.relationship(
+        "MilkEntry",
+        backref = "product",
+        lazy = True
+    )
+
     def to_dict(self):
         return {
             "id": self.id,

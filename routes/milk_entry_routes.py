@@ -11,7 +11,7 @@ milk_entries = Blueprint("milk_entries", __name__)
 def create_milk_entry():
 
     data = request.get_json()
-    
+
     customer = Customer.query.filter_by(id=data["customer_id"],is_deleted=False).first()
 
     if not customer:
@@ -25,6 +25,18 @@ def create_milk_entry():
         return jsonify({
             "message":"product not found"
         }), 404
+    
+    # check duplicate customer entry for same date
+    existing_entry = MilkEntry.query.filter_by(
+        customer_id = data["customer_id"],
+        entry_date = data["entry_date"],
+        is_deleted=False
+    ).first()
+
+    if existing_entry:
+        return jsonify({
+            "message":"Entry already exists for customer"
+        })
     
     morning_qty = float(data.get("morning_qty", 0))
     evening_qty = float(data.get("evening_qty", 0))
@@ -40,8 +52,8 @@ def create_milk_entry():
        product_id = data["product_id"],
        entry_date = data["entry_date"],
 
-       morning_qty = data["morning_qty"],
-       evening_qty = data["evening_qty"],
+       morning_qty = morning_qty,
+       evening_qty = evening_qty,
 
        total_qty = total_qty,
        rate = rate,
@@ -58,26 +70,54 @@ def create_milk_entry():
     }), 201
 
 
-# Get All Milk Entries
+# # Get All Milk Entries
+# @milk_entries.route("/milk-entries", methods=["GET"])
+# def get_milk_entries():
+
+#     milk_entries = MilkEntry.query.filter_by(is_deleted=False).all()
+
+#     result = []
+
+#     for milk_entry in milk_entries:
+#         result.append(milk_entry.to_dict())
+
+#     if not result:
+#         return jsonify({
+#             "message": "No milk entries found"
+#         }), 404
+
+#     return jsonify({
+#         "milk_entries": result
+#     })
+
+# Get Milk Entries 
+# by Customer ID & Date filter
 @milk_entries.route("/milk-entries", methods=["GET"])
-def get_milk_entrys():
+def get_milk_entries():
+    
+    customer_id = request.args.get("customer_id")
+    entry_date = request.args.get("entry_date")
+    entries = MilkEntry.query.filter_by(is_deleted=False)
 
-    milk_entries = MilkEntry.query.filter_by(is_deleted=False).all()
+    if customer_id:
+        entries = entries.filter_by(
+            customer_id=customer_id
+        )
+    
+    if entry_date:
+        entries = entries.filter_by(
+           entry_date=entry_date
+        )
+    
+    milk_entries = entries.all()
 
-    result = []
-
+    all_entries = []
     for milk_entry in milk_entries:
-        result.append(milk_entry.to_dict())
-
-    if not result:
-        return jsonify({
-            "message": "No milk entries found"
-        }), 404
-
+        all_entries.append(milk_entry.to_dict())
+        
     return jsonify({
-        "milk_entries": result
+        "milk_entries": all_entries
     })
-
 
 # Get Single Milk Entry
 @milk_entries.route("/milk-entries/<int:id>", methods=["GET"])
@@ -106,8 +146,8 @@ def update_milk_entry(id):
     
     data = request.get_json()
     
-    morning_qty = data.get("morning_qty",0)
-    evening_qty = data.get("evening_qty",0)
+    morning_qty = float(data.get("morning_qty",0))
+    evening_qty = float(data.get("evening_qty",0))
      
     total_qty = morning_qty + evening_qty
 
@@ -148,3 +188,4 @@ def delete_milk_entry(id):
         "message": "Milk Entry deleted successfully",
         "milk_entry_id": milk_entry.id
     })
+

@@ -69,9 +69,11 @@ class MilkEntry(db.Model):
         return {
             "id": self.id,
             "customer_id":self.customer_id,
+            "customer_name":self.customer.name,
             "product_id":self.product_id,
+            "product": self.product.name,
 
-            "entry_date":self.entry_date.strftime("%y-%m-%d"),
+            "entry_date":self.entry_date.strftime("%Y-%m-%d"),
             "morning_qty": float(self.morning_qty),
             "evening_qty": float(self.evening_qty),
 

@@ -33,6 +33,14 @@ class Product(db.Model):
         lazy = True
     )
 
+    # add product name in payment entries 
+    payment_entries = db.relationship(
+        "Payment",
+        backref = "product",
+        lazy = True
+    )
+
+
     def to_dict(self):
         return {
             "id": self.id,

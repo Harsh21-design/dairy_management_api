@@ -6,6 +6,7 @@ from routes.customer_routes import customers
 from routes.products_routes import products
 from routes.milk_entry_routes import milk_entries
 from routes.daily_entry_route import daily_entries
+from routes.payment_routes import payments
 
 load_dotenv()   
 app = Flask(__name__)
@@ -20,6 +21,7 @@ app.register_blueprint(customers)
 app.register_blueprint(products)
 app.register_blueprint(milk_entries)
 app.register_blueprint(daily_entries)
+app.register_blueprint(payments)
 
 @app.route("/")
 def home():

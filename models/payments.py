@@ -4,29 +4,32 @@ from datetime import datetime, timedelta
 def indian_time():
     return datetime.utcnow() + timedelta(hours=5, minutes=30)
 
-class Customer(db.Model):
+class Payment(db.Model):
 
-    __tablename__ = "customers"
+    __tablename__ = "payments"
 
     id = db.Column(db.Integer, primary_key=True)
-
-    name = db.Column(
-        db.String(100),
+    
+    customer_id = db.Column(
+        db.Integer,
+        db.ForeignKey("customers.id"),
         nullable=False
     )
 
-    mobile = db.Column(
-        db.String(15),
+    product_id = db.Column(
+        db.Integer,
+        db.ForeignKey("products.id"),
         nullable=False
     )
 
-    address = db.Column(
-        db.Text
+    payment_date = db.Column(
+        db.Date,
+        nullable=False
     )
 
-    opening_balance = db.Column(
-        db.Numeric(10, 2),
-        default=0.00
+    amount = db.Column(
+        db.Numeric(10,2),
+        nullable=False
     )
 
     is_deleted = db.Column(
@@ -37,6 +40,7 @@ class Customer(db.Model):
     created_at = db.Column(
         db.DateTime,
         default=indian_time
+
     )
 
     updated_at = db.Column(
@@ -45,28 +49,18 @@ class Customer(db.Model):
         onupdate=indian_time
     )
 
-    # add customer name in milk entries 
-    milk_entries = db.relationship(
-        "MilkEntry",
-        backref = "customer",
-        lazy = True
-    )
-
-    # add customer name in payment entries 
-    payment_entries = db.relationship(
-        "Payment",
-        backref = "customer",
-        lazy = True
-    )
-
     def to_dict(self):
         return {
             "id": self.id,
-            "name": self.name,
-            "mobile": self.mobile,
-            "address": self.address,
-            "opening_balance": float(self.opening_balance),
+            "customer_id":self.customer_id,
+            "customer_name":self.customer.name,
+            "product_id":self.product_id,
+            "product": self.product.name,
+
+            "payment_date":self.payment_date.strftime("%Y-%m-%d"),
+            "amount": float(self.amount),
             "is_deleted": self.is_deleted,
+            
             "created_at": self.created_at.strftime("%Y-%m-%d %I:%M:%S %p"),
             "updated_at": self.updated_at.strftime("%Y-%m-%d %I:%M:%S %p")
         }

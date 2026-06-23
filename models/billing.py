@@ -1,12 +1,13 @@
+import calendar
 from extensions import db
 from datetime import datetime, timedelta
 
 def indian_time():
     return datetime.utcnow() + timedelta(hours=5, minutes=30)
 
-class Billing(db.Model):
+class Bill(db.Model):
 
-    __tablename__ = "billings"
+    __tablename__ = "bills"
 
     id = db.Column(db.Integer, primary_key=True)
     
@@ -21,13 +22,23 @@ class Billing(db.Model):
         nullable=False
     )
 
-    total_payment = db.Column(
-        db.Numeric(10,2),
+    # total_payment = db.Column(
+    #     db.Numeric(10,2),
+    #     nullable=False
+    # )
+
+    # current_due = db.Column(
+    #     db.Numeric(10,2),
+    #     nullable=False
+    # )
+
+    bill_month = db.Column(
+        db.Integer,
         nullable=False
     )
 
-    current_due = db.Column(
-        db.Numeric(10,2),
+    bill_year = db.Column(
+        db.Integer,
         nullable=False
     )
 
@@ -42,19 +53,16 @@ class Billing(db.Model):
 
     )
 
-    updated_at = db.Column(
-        db.DateTime,
-        default=indian_time,
-        onupdate=indian_time
-    )
-
     def to_dict(self):
         return {
             "id": self.id,
             "customer_id":self.customer_id,
             "customer_name":self.customer.name,
-            "is_deleted": self.is_deleted,
-            
-            "created_at": self.created_at.strftime("%Y-%m-%d %I:%M:%S %p"),
-            "updated_at": self.updated_at.strftime("%Y-%m-%d %I:%M:%S %p")
+            "bill_month": calendar.month_name[self.bill_month],
+            "bill_year": self.bill_year,
+            "total_amount": self.total_amount,
+            # "total_payment": self.total_payment,
+            # "current_due": self.current_due,
+            "is_deleted": self.is_deleted,         
+            "created_at": self.created_at.strftime("%Y-%m-%d %I:%M:%S %p")
         }

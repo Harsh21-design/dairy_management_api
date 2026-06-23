@@ -1,5 +1,7 @@
 from flask import request, jsonify, Blueprint
 from extensions import db
+from datetime import datetime
+from sqlalchemy import extract
 from models.payments import Payment
 from models.customers import Customer
 from models.products import Product
@@ -13,7 +15,8 @@ def create_payment():
     data = request.get_json()
 
     customer = Customer.query.filter_by(id=data["customer_id"],is_deleted=False).first()
-
+    
+    # check customer
     if not customer:
         return jsonify({
             "message":"customer not found"
@@ -21,16 +24,36 @@ def create_payment():
     
     product = Product.query.filter_by(id=data["product_id"],is_deleted=False).first()
 
+    #  check product
     if not product:
         return jsonify({
             "message":"product not found"
         }), 404
     
+    # check existing payment entry
+
+    existing_payment = Payment.query.filter_by(
+        payment_month=extract("month", Payment.payment_date),
+        payment_year=extract("year", Payment.payment_date),
+        is_deleted=False
+    )
+
+    if existing_payment:
+        return jsonify({
+            "message":"Payment already created"
+        })
+
     # make new payment entry
+    payment_date = datetime.strptime(
+    data["payment_date"],
+    "%Y-%m-%d").date()
+
     payment_entry = Payment(
        customer_id = data["customer_id"],
        product_id = data["product_id"],
-       payment_date = data["payment_date"],
+       payment_date = payment_date,
+       payment_month = payment_date.month,
+       payment_year = payment_date.year,
        amount = data["amount"]
     )
 

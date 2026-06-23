@@ -59,6 +59,13 @@ class Customer(db.Model):
         lazy = True
     )
 
+    # add customer name in bill entries 
+    bill_entries = db.relationship(
+        "Bill",
+        backref = "customer",
+        lazy = True
+    )
+
     def to_dict(self):
         return {
             "id": self.id,

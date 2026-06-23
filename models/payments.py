@@ -1,4 +1,5 @@
 from extensions import db
+import calendar
 from datetime import datetime, timedelta
 
 def indian_time():
@@ -27,6 +28,15 @@ class Payment(db.Model):
         nullable=False
     )
 
+    payment_month = db.Column(
+    db.Integer,
+    nullable=False
+)
+
+    payment_year = db.Column(
+        db.Integer,
+        nullable=False
+)
     amount = db.Column(
         db.Numeric(10,2),
         nullable=False
@@ -58,6 +68,8 @@ class Payment(db.Model):
             "product": self.product.name,
 
             "payment_date":self.payment_date.strftime("%Y-%m-%d"),
+            "month": calendar.month_name[self.payment_month],
+            "year": self.payment_year,
             "amount": float(self.amount),
             "is_deleted": self.is_deleted,
             

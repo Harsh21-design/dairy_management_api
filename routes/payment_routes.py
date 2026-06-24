@@ -77,7 +77,10 @@ def get_payment_entries():
     
     customer_id = request.args.get("customer_id")
     payment_date = request.args.get("payment_date")
-
+    payment_date = datetime.strptime(
+           payment_date,
+           "%Y-%m-%d"
+        ).date()
     payment_month = request.args.get("payment_month")
     payment_year = request.args.get("payment_year")
 
@@ -90,8 +93,9 @@ def get_payment_entries():
     
     if payment_date:
         entries = entries.filter_by(
-           payment_date=payment_date
+            payment_date=payment_date
         )
+
     if payment_month and not payment_year:
         return jsonify({
             "message": "payment_year is required"

@@ -2,6 +2,7 @@ import os
 from flask import Flask
 from extensions import db
 from dotenv import load_dotenv
+from config import Config
 from routes.customer_routes import customers
 from routes.products_routes import products
 from routes.milk_entry_routes import milk_entries
@@ -13,7 +14,10 @@ load_dotenv()
 app = Flask(__name__)
 
 # Database Configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
+# app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
+# app.config['SQLALCHEMY_TRACK_MODIFICATION'] = os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS")
+app.config.from_object(Config)
+
 # Initialize Database
 db.init_app(app)
 

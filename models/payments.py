@@ -31,12 +31,13 @@ class Payment(db.Model):
     payment_month = db.Column(
     db.Integer,
     nullable=False
-)
+    )
 
     payment_year = db.Column(
         db.Integer,
         nullable=False
-)
+    )
+    
     amount = db.Column(
         db.Numeric(10,2),
         nullable=False

@@ -1,7 +1,7 @@
+import calendar
 from flask import request, jsonify, Blueprint
 from extensions import db
 from datetime import datetime
-from sqlalchemy import extract
 from models.payments import Payment
 from models.customers import Customer
 from models.products import Product
@@ -30,30 +30,36 @@ def create_payment():
             "message":"product not found"
         }), 404
     
+    # extract payment month & year
+    payment_date = datetime.strptime(
+        data["payment_date"],
+        "%Y-%m-%d"
+    ).date()
+
+    payment_month = payment_date.month
+    payment_year = payment_date.year
+
     # check existing payment entry
-
     existing_payment = Payment.query.filter_by(
-        payment_month=extract("month", Payment.payment_date),
-        payment_year=extract("year", Payment.payment_date),
+        customer_id=data["customer_id"],
+        payment_month=payment_month,
+        payment_year=payment_year,
         is_deleted=False
-    )
-
+    ).first()
+    
     if existing_payment:
         return jsonify({
-            "message":"Payment already created"
-        })
+            "message": f"Payment already created for {calendar.month_name[payment_month]} {payment_year}"
+        }), 400
 
     # make new payment entry
-    payment_date = datetime.strptime(
-    data["payment_date"],
-    "%Y-%m-%d").date()
 
     payment_entry = Payment(
        customer_id = data["customer_id"],
        product_id = data["product_id"],
        payment_date = payment_date,
-       payment_month = payment_date.month,
-       payment_year = payment_date.year,
+       payment_month = payment_month,
+       payment_year = payment_year,
        amount = data["amount"]
     )
 
@@ -61,7 +67,7 @@ def create_payment():
     db.session.commit()
 
     return jsonify({
-        "message": "Payment entry created successfully"
+        "message": f"Payment entry created successfully for {calendar.month_name[payment_entry.payment_month]} {payment_entry.payment_year}"
     }), 201
     
 # Get Payment Entries 
@@ -71,6 +77,10 @@ def get_payment_entries():
     
     customer_id = request.args.get("customer_id")
     payment_date = request.args.get("payment_date")
+
+    payment_month = request.args.get("payment_month")
+    payment_year = request.args.get("payment_year")
+
     entries = Payment.query.filter_by(is_deleted=False)
 
     if customer_id:
@@ -82,7 +92,22 @@ def get_payment_entries():
         entries = entries.filter_by(
            payment_date=payment_date
         )
+    if payment_month and not payment_year:
+        return jsonify({
+            "message": "payment_year is required"
+        }), 400
     
+    if payment_year and not payment_month:
+        return jsonify({
+            "message": "payment_month is required"
+        }), 400
+    
+    if (payment_month and payment_year):
+        entries = entries.filter_by(
+            payment_month=payment_month,
+            payment_year=payment_year
+        )
+
     payment_entries = entries.all()
 
     all_entries = []
@@ -132,7 +157,7 @@ def update_payment_entry(id):
     })
 
 
-# Delete MilkEntry
+# Delete Payment Entry
 @payments.route("/payments/<int:id>", methods=["DELETE"])
 def delete_payment_entry(id):
 

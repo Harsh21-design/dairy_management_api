@@ -1,3 +1,4 @@
+import calendar
 from sqlalchemy import extract
 from flask import Blueprint, request, jsonify
 from extensions import db
@@ -66,7 +67,7 @@ def generate_customer_bill():
 
     if get_bill(customer_id, bill_month, bill_year):
         return jsonify({
-            "message": "Bill already generated"
+            "message": f"Bill already generated for {calendar.month_name[bill_month]} {bill_year}"
         }), 400
 
     milk_entries = get_month_milk_entries(
@@ -77,7 +78,7 @@ def generate_customer_bill():
 
     if not milk_entries:
         return jsonify({
-            "message": "No milk entries found"
+            "message": f"No milk entries found for {calendar.month_name[bill_month]} {bill_year}"
         }), 400
     
     total_amount = sum(
@@ -96,11 +97,12 @@ def generate_customer_bill():
     db.session.commit()
 
     return jsonify({
-        "message": "Bill generated successfully",
+        "message": f"Bill generated successfully for {calendar.month_name[bill_month]} {bill_year}",
         "bill": bill.to_dict()
     }), 201
 
-
+# GET BILL
+# by customer, bill month & year
 @billing.route("/bills", methods=["GET"])
 def get_bill_entries():
 
@@ -147,7 +149,7 @@ def generate_bill_report():
         bill_year
     ]):
         return jsonify({
-            "message": "customer_id, bill_month and bill_year are required"
+            "message": "customer_id, bill_month and bill_year all are required"
         }), 400
     
     bill_month = int(bill_month)
@@ -168,7 +170,7 @@ def generate_bill_report():
     
     if not bill:
         return jsonify({
-            "message": "Generate bill first"
+            "message": f"Generate bill first for {calendar.month_name[bill_month]} {bill_year}"
         }), 404
     
     milk_entries = get_month_milk_entries(
@@ -194,6 +196,7 @@ def generate_bill_report():
     )
     
     # Previous Due
+    # fetch latest last bill before current month/year bill
     last_bill = Bill.query.filter(
         Bill.customer_id == customer_id,
         Bill.is_deleted == False,
@@ -211,7 +214,7 @@ def generate_bill_report():
         Bill.bill_month.desc()
     ).first()
     
-    if last_bill:
+    if last_bill: # last bill existed
     
         previous_payments = get_month_payments(
             customer_id,
@@ -228,7 +231,7 @@ def generate_bill_report():
             )
         )
     
-    else:
+    else: # first bill 
         previous_due = -float(
             customer.opening_balance
         )
@@ -271,7 +274,7 @@ def generate_bill_report():
         },
     
         "billing_period": {
-            "month": bill_month,
+            "month": calendar.month_name[bill_month],
             "year": bill_year
         },
     

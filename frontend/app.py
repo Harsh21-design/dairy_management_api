@@ -100,7 +100,7 @@ if not st.session_state["authenticated"]:
                     st.session_state["landing_view"] = "home"
                     st.rerun()
             else:
-                if st.button("🔐 Admin Login", key="btn_admin_login", type="primary", use_container_width=True):
+                if st.button("Admin Login", key="btn_admin_login", type="primary", use_container_width=True):
                     st.session_state["landing_view"] = "login"
                     st.rerun()
 

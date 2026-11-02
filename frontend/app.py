@@ -125,7 +125,7 @@ if not st.session_state["authenticated"]:
                 
                 with st.form("admin_login_form"):
                     username = st.text_input("Username", value="admin", placeholder="Enter username")
-                    password = st.text_input("Password", type="password", value="admin@123", placeholder="Enter password")
+                    password = st.text_input("Password", type="password", placeholder="Enter your password")
                     
                     st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
                     submit = st.form_submit_button("Sign In to Control Center →", type="primary", use_container_width=True)
@@ -157,7 +157,7 @@ if not st.session_state["authenticated"]:
                 st.markdown("<hr style='border:none; border-top:1px solid rgba(148, 163, 184, 0.2); margin: 18px 0;'>", unsafe_allow_html=True)
                 st.markdown(
                     "<div style='text-align:center; font-size:0.85rem; color: #64748B;'>"
-                    "Default Credentials: <strong>admin</strong> / <strong>admin@123</strong><br>"
+                    "Default Admin: <strong>admin</strong> (use password set during setup)<br>"
                     "🔐 Secured with JWT 256-bit token verification"
                     "</div>",
                     unsafe_allow_html=True

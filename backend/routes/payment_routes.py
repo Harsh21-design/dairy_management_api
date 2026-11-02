@@ -1,0 +1,181 @@
+import calendar
+from flask import request, jsonify, Blueprint
+from extensions import db
+from datetime import datetime
+from models.payments import Payment
+from models.customers import Customer
+from models.products import Product
+
+payments = Blueprint("payments", __name__)
+
+# add new payment
+@payments.route("/payments", methods=["POST"])
+def create_payment():
+
+    data = request.get_json()
+
+    customer = Customer.query.filter_by(id=data["customer_id"],is_deleted=False).first()
+    
+    # check customer
+    if not customer:
+        return jsonify({
+            "message":"customer not found"
+        }), 404
+    
+    product = Product.query.filter_by(id=data["product_id"],is_deleted=False).first()
+
+    #  check product
+    if not product:
+        return jsonify({
+            "message":"product not found"
+        }), 404
+    
+    # extract payment month & year
+    payment_date = datetime.strptime(
+        data["payment_date"],
+        "%Y-%m-%d"
+    ).date()
+
+    payment_month = payment_date.month
+    payment_year = payment_date.year
+
+    # check existing payment entry
+    existing_payment = Payment.query.filter_by(
+        customer_id=data["customer_id"],
+        payment_month=payment_month,
+        payment_year=payment_year,
+        is_deleted=False
+    ).first()
+    
+    if existing_payment:
+        return jsonify({
+            "message": f"Payment already created for {calendar.month_name[payment_month]} {payment_year}"
+        }), 400
+
+    # make new payment entry
+
+    payment_entry = Payment(
+       customer_id = data["customer_id"],
+       product_id = data["product_id"],
+       payment_date = payment_date,
+       payment_month = payment_month,
+       payment_year = payment_year,
+       amount = data["amount"]
+    )
+
+    db.session.add(payment_entry)
+    db.session.commit()
+
+    return jsonify({
+        "message": f"Payment entry created successfully for {calendar.month_name[payment_entry.payment_month]} {payment_entry.payment_year}"
+    }), 201
+    
+# Get Payment Entries 
+# by Customer ID & Date filter
+@payments.route("/payments", methods=["GET"])
+def get_payment_entries():
+    
+    customer_id = request.args.get("customer_id")
+    payment_date_str = request.args.get("payment_date")
+    payment_month = request.args.get("payment_month")
+    payment_year = request.args.get("payment_year")
+
+    entries = Payment.query.filter_by(is_deleted=False)
+
+    if customer_id:
+        entries = entries.filter_by(
+            customer_id=customer_id
+        )
+    
+    if payment_date_str:
+        try:
+            p_date = datetime.strptime(payment_date_str, "%Y-%m-%d").date()
+            entries = entries.filter_by(payment_date=p_date)
+        except ValueError:
+            return jsonify({"message": "Invalid date format, use YYYY-MM-DD"}), 400
+
+    if payment_month and not payment_year:
+        return jsonify({
+            "message": "payment_year is required"
+        }), 400
+    
+    if payment_year and not payment_month:
+        return jsonify({
+            "message": "payment_month is required"
+        }), 400
+    
+    if (payment_month and payment_year):
+        entries = entries.filter_by(
+            payment_month=payment_month,
+            payment_year=payment_year
+        )
+
+    payment_entries = entries.all()
+
+    all_entries = []
+    for payment_entry in payment_entries:
+        all_entries.append(payment_entry.to_dict())
+        
+    return jsonify({
+        "payment_entries": all_entries
+    })
+
+# Get Single Payment Entry
+@payments.route("/payments/<int:id>", methods=["GET"])
+def get_payment_entry(id):
+
+    payment_entry = Payment.query.filter_by(id=id,is_deleted=False).first()
+
+    if not payment_entry:
+        return jsonify({
+            "message": "Payment Entry not found"
+        }), 404
+
+    return jsonify(payment_entry.to_dict())
+
+
+# Update Payment Entry - Amount
+@payments.route("/payments/<int:id>", methods=["PUT"])
+def update_payment_entry(id):
+
+    payment_entry = Payment.query.filter_by(id=id,is_deleted=False).first()
+
+    if not payment_entry:
+        return jsonify({
+            "message": "Payment Entry not found"
+        }), 404
+    
+    data = request.get_json()
+    amount = float(data["amount"])
+
+    # updation
+    payment_entry.amount = amount
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Payment Entry updated successfully",
+        "payment_entry_id": payment_entry.id
+    })
+
+
+# Delete Payment Entry
+@payments.route("/payments/<int:id>", methods=["DELETE"])
+def delete_payment_entry(id):
+
+    payment_entry = Payment.query.filter_by(id=id,is_deleted=False).first()
+
+    if not payment_entry:
+        return jsonify({
+            "message": "Payment Entry not found"
+        }), 404
+
+    # soft deletion
+    payment_entry.is_deleted = True
+    db.session.commit()
+
+    return jsonify({
+        "message": "Payment Entry deleted successfully",
+        "payment_entry_id": payment_entry.id
+    })
+

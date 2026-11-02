@@ -76,11 +76,7 @@ def create_payment():
 def get_payment_entries():
     
     customer_id = request.args.get("customer_id")
-    payment_date = request.args.get("payment_date")
-    payment_date = datetime.strptime(
-           payment_date,
-           "%Y-%m-%d"
-        ).date()
+    payment_date_str = request.args.get("payment_date")
     payment_month = request.args.get("payment_month")
     payment_year = request.args.get("payment_year")
 
@@ -91,10 +87,12 @@ def get_payment_entries():
             customer_id=customer_id
         )
     
-    if payment_date:
-        entries = entries.filter_by(
-            payment_date=payment_date
-        )
+    if payment_date_str:
+        try:
+            p_date = datetime.strptime(payment_date_str, "%Y-%m-%d").date()
+            entries = entries.filter_by(payment_date=p_date)
+        except ValueError:
+            return jsonify({"message": "Invalid date format, use YYYY-MM-DD"}), 400
 
     if payment_month and not payment_year:
         return jsonify({
